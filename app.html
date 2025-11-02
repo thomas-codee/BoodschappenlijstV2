@@ -373,6 +373,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      alert("Uitloggen mislukt: " + error.message);
+    } else {
+      window.location.href = "index.html";
+    }
+  } catch (err) {
+    console.error("Logout error:", err);
+    alert("Er is iets misgegaan bij het uitloggen.");
+  }
+});
+
   document.getElementById("generate").addEventListener("click", generateList);
 
   /* ---------- EXPORT ---------- */
@@ -442,29 +456,12 @@ document.addEventListener("DOMContentLoaded", () => {
 }
 </style>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
 <script>
-  // Initialize Supabase
-  const supabaseUrl = "https://rtqfjlbgnftlznonecwj.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cWZqbGJnbmZ0bHpub25lY3dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwNjY1ODgsImV4cCI6MjA3NzY0MjU4OH0.hWcsqknprKIuA0AGnUn1cOM4ux0U-rgyWNJxp3vTS_U";
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-  
+
 document.getElementById("addRecipeBtn").addEventListener("click", () => {
   window.location.href = "nieuw-recept.html";
 });
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-  try {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      alert("Uitloggen mislukt: " + error.message);
-    } else {
-      window.location.href = "index.html";
-    }
-  } catch (err) {
-    console.error("Logout error:", err);
-    alert("Er is iets misgegaan bij het uitloggen.");
-  }
-});
+
 
 </script>
 </body>
