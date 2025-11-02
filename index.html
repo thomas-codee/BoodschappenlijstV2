@@ -297,17 +297,17 @@ document.getElementById("signup").addEventListener("click", async () => {
 
   msg.textContent = "Account aangemaakt! Recepten worden toegevoegd...";
 
-  // Voeg default recepten toe
   const user_id = signUpData.user.id;
+
+  // Convert recipes to match your table schema: {name, data}
   const defaultRecipes = Object.entries(recipes2)
     .filter(([title]) => title !== "Geen")
     .map(([title, ingredients]) => ({
       user_id,
-      title,
-      ingredients: ingredients.map(ing => `${ing.amount} ${ing.unit} ${ing.name}`).join(", ")
+      name: title,
+      data: ingredients // keep as array of objects
     }));
 
-  // Bulk insert
   const { error: insertError } = await supabase.from("recipes").insert(defaultRecipes);
 
   if (insertError) {
@@ -317,6 +317,7 @@ document.getElementById("signup").addEventListener("click", async () => {
   }
 });
 </script>
+
 
 </body>
 </html>
