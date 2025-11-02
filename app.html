@@ -529,5 +529,36 @@ document.getElementById("export").addEventListener("click", () => {
   a.click();
 });
 </script>
+<!-- ➕ Plusknop rechtsonder -->
+<button id="addRecipeBtn" title="Nieuw recept toevoegen">＋</button>
+
+<style>
+#addRecipeBtn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 2em;
+  font-weight: bold;
+  background-color: var(--color-primary);
+  color: white;
+  border: 3px solid var(--color-text);
+  box-shadow: 6px 6px 0 var(--color-text);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+#addRecipeBtn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0 var(--color-text);
+}
+</style>
+
+<script>
+document.getElementById("addRecipeBtn").addEventListener("click", () => {
+  window.location.href = "nieuw-recept.html";
+});
+</script>
 </body>
 </html>

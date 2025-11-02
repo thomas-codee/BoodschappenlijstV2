@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nieuw Recept - De Recepten Raket</title>
+<link rel="icon" type="image/png" href="logo.png">
+<meta name="theme-color" content="#5cb377">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=Kalam:wght@300;400;700&display=swap');
+
+:root {
+  --color-primary: #5cb377;
+  --color-secondary: #ff6347;
+  --color-background: #fdf6e3;
+  --color-text: #2c3e50;
+  --font-heading: 'Cabin Sketch', cursive;
+  --font-body: 'Kalam', cursive;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  font-family: var(--font-heading);
+  color: var(--color-secondary);
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+
+form {
+  background: white;
+  padding: 25px;
+  border: 3px solid var(--color-text);
+  border-radius: 20px;
+  box-shadow: 6px 6px 0 var(--color-primary);
+  max-width: 600px;
+  width: 100%;
+  text-align: left;
+}
+
+label {
+  font-weight: bold;
+}
+
+input, select {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0 10px 0;
+  border: 2px solid var(--color-text);
+  border-radius: 10px;
+  font-size: 1em;
+  font-family: var(--font-body);
+}
+
+button {
+  font-family: var(--font-body);
+  font-weight: bold;
+  letter-spacing: 1px;
+  background-color: var(--color-primary);
+  color: white;
+  border: 3px solid var(--color-text);
+  border-radius: 10px;
+  padding: 10px 20px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--color-text);
+  transition: all 0.1s ease;
+}
+button:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-text);
+}
+
+#ingredientList {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.ingredient {
+  background-color: #fffbe6;
+  border: 2px dashed var(--color-text);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+#msg {
+  color: var(--color-secondary);
+  margin-top: 10px;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+
+<h1>🍲 Nieuw Recept</h1>
+
+<form id="recipeForm">
+  <label>Naam van recept:</label>
+  <input type="text" id="recipeName" placeholder="Bijv. Vissticks Massaman Curry" required>
+
+  <h3>Ingrediënten</h3>
+  <div id="ingredientList"></div>
+  <button type="button" id="addIngredientBtn">➕ Ingrediënt toevoegen</button>
+
+  <br><br>
+  <button type="submit">💾 Recept opslaan</button>
+  <button type="button" id="cancelBtn" style="background-color: var(--color-secondary);">❌ Annuleren</button>
+  <p id="msg"></p>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabaseUrl = "https://JOUW_PROJECT.supabase.co";
+const supabaseKey = "JOUW_PUBLIC_ANON_KEY";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+const ingredientList = document.getElementById("ingredientList");
+const addIngredientBtn = document.getElementById("addIngredientBtn");
+const recipeForm = document.getElementById("recipeForm");
+const msg = document.getElementById("msg");
+
+addIngredientBtn.addEventListener("click", () => {
+  const div = document.createElement("div");
+  div.classList.add("ingredient");
+  div.innerHTML = `
+    <label>Naam:</label>
+    <input type="text" class="ing-name" placeholder="Bijv. Kokosmelk" required>
+    <label>Hoeveelheid:</label>
+    <input type="number" class="ing-amount" placeholder="Bijv. 400" required>
+    <label>Eenheid:</label>
+    <input type="text" class="ing-unit" placeholder="Bijv. ml, g, stuks" required>
+    <label>Categorie:</label>
+    <select class="ing-category" required>
+      <option value="">Kies categorie...</option>
+      <option value="Vlees/Vis">Vlees/Vis</option>
+      <option value="Groenten">Groenten</option>
+      <option value="Kruiden">Kruiden</option>
+      <option value="Zuivel">Zuivel</option>
+      <option value="Rijst/Couscous/Pasta">Rijst/Couscous/Pasta</option>
+      <option value="Overig">Overig</option>
+    </select>
+  `;
+  ingredientList.appendChild(div);
+});
+
+document.getElementById("cancelBtn").addEventListener("click", () => {
+  window.location.href = "app.html";
+});
+
+recipeForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  msg.textContent = "Recept opslaan...";
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    msg.textContent = "Je bent niet ingelogd!";
+    return;
+  }
+
+  const recipeName = document.getElementById("recipeName").value.trim();
+  const ingredients = [...document.querySelectorAll(".ingredient")].map(div => ({
+    name: div.querySelector(".ing-name").value,
+    amount: parseFloat(div.querySelector(".ing-amount").value),
+    unit: div.querySelector(".ing-unit").value,
+    category: div.querySelector(".ing-category").value
+  }));
+
+  if (!recipeName || ingredients.length === 0) {
+    msg.textContent = "Vul een naam en minstens één ingrediënt in!";
+    return;
+  }
+
+  const { error } = await supabase
+    .from("recipes")
+    .insert({
+      user_id: user.id,
+      name: recipeName,
+      data: ingredients
+    });
+
+  if (error) {
+    msg.textContent = "Fout: " + error.message;
+  } else {
+    msg.textContent = "Recept succesvol opgeslagen! 🚀";
+    setTimeout(() => window.location.href = "app.html", 1000);
+  }
+});
+</script>
+
+</body>
+</html>
