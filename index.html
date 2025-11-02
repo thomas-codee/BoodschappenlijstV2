@@ -276,45 +276,40 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   }
 });
 
-// 🆕 Registreren + default recipes
 document.getElementById("signup").addEventListener("click", async () => {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const msg = document.getElementById("msg");
+const email = document.getElementById("email").value;
+const password = document.getElementById("password").value;
+const msg = document.getElementById("msg");
 
-  if (!email || !password) {
-    msg.textContent = "Vul eerst e-mail en wachtwoord in!";
-    return;
+if (!email || !password) {
+msg.textContent = "Vul eerst e-mail en wachtwoord in!";
+return;
+}
+
+msg.textContent = "Account aanmaken...";
+const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+
+if (signUpError) {
+msg.textContent = "Fout: " + signUpError.message;
+} else {
+msg.textContent = "Account aangemaakt! Check je mail om te bevestigen.";
+
+// Automatically log in to get user_id
+const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+if (!loginError) {
+  const userId = loginData.user.id;
+
+  // Insert all recipes for the new user
+  for (const [name, ingredients] of Object.entries(recipes2)) {
+    await supabase.from("recipes").insert({
+      user_id: userId,
+      name: name,
+      data: JSON.stringify(ingredients)
+    });
   }
+}
 
-  msg.textContent = "Account aanmaken...";
-  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
-
-  if (signUpError) {
-    msg.textContent = "Fout: " + signUpError.message;
-    return;
-  }
-
-  msg.textContent = "Account aangemaakt! Recepten worden toegevoegd...";
-
-  const user_id = signUpData.user.id;
-
-  // Convert recipes to match your table schema: {name, data}
-  const defaultRecipes = Object.entries(recipes2)
-    .filter(([title]) => title !== "Geen")
-    .map(([title, ingredients]) => ({
-      user_id,
-      name: title,
-      data: ingredients // keep as array of objects
-    }));
-
-  const { error: insertError } = await supabase.from("recipes").insert(defaultRecipes);
-
-  if (insertError) {
-    msg.textContent = "Account aangemaakt, maar recepten toevoegen mislukt: " + insertError.message;
-  } else {
-    msg.textContent = "Account en recepten succesvol aangemaakt! Check je mail om te bevestigen.";
-  }
+}
 });
 </script>
 
