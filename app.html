@@ -393,6 +393,10 @@ document.addEventListener("DOMContentLoaded", () => {
 <!-- ➕ Plusknop rechtsonder -->
 <button id="addRecipeBtn" title="Nieuw recept toevoegen">＋</button>
 
+<!-- Logout knop -->
+<button id="logoutBtn" title="Uitloggen">⏏</button>
+
+
 <style>
 #addRecipeBtn {
   position: fixed;
@@ -414,12 +418,43 @@ document.addEventListener("DOMContentLoaded", () => {
   transform: translate(2px, 2px);
   box-shadow: 3px 3px 0 var(--color-text);
 }
+#logoutBtn {
+  position: fixed;
+  top: 30px;
+  right: 30px;  /* past goed naast de plusknop als je wilt */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 1.8em;
+  font-weight: bold;
+  background-color: var(--color-secondary);
+  color: white;
+  border: 3px solid var(--color-text);
+  box-shadow: 6px 6px 0 var(--color-text);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  z-index: 1000; /* altijd boven andere content */
+}
+
+#logoutBtn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0 var(--color-text);
+}
 </style>
 
 <script>
 document.getElementById("addRecipeBtn").addEventListener("click", () => {
   window.location.href = "nieuw-recept.html";
 });
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    alert("Uitloggen mislukt: " + error.message);
+  } else {
+    window.location.href = "index.html"; // terug naar loginpagina
+  }
+});
+
 </script>
 </body>
 </html>
