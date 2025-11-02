@@ -213,6 +213,155 @@ button:hover{
   .shopping-list-image{ bottom: 20px; width: 100px; }
   #export{ font-size: 0.75rem; padding: 5px 8px; }
 }
+
+/* 🚀 Nieuwe stijlen voor de popup (modaal venster) 🚀 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: none; /* Standaard verborgen */
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: var(--color-background);
+  padding: 40px;
+  border-radius: 20px;
+  border: 5px solid var(--color-text);
+  box-shadow: 10px 10px 0 var(--color-secondary);
+  max-width: 90%;
+  max-height: 90%; /* Beperk de hoogte voor scrollen */
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  position: relative;
+  font-size: 1.1em;
+}
+
+.modal-content h3 {
+  font-family: var(--font-heading);
+  color: var(--color-primary);
+  font-size: 2.5em;
+  margin-top: 0;
+  border-bottom: 3px dashed var(--color-secondary);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+/* Scrollbare lijst container */
+#recipeListContainer {
+    text-align: left;
+    max-height: 50vh; /* Max hoogte voor scrollen */
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 2px dashed var(--color-primary);
+    background-color: #fffaf0;
+    border-radius: 10px;
+}
+
+.recipe-entry {
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px dotted #ccc;
+}
+.recipe-entry:last-child {
+    border-bottom: none;
+}
+.recipe-entry h4 {
+    font-family: var(--font-heading);
+    color: var(--color-secondary);
+    margin: 5px 0;
+    font-size: 1.5em;
+}
+.recipe-entry ul {
+    list-style-type: none;
+    padding-left: 10px;
+    margin: 5px 0;
+    font-size: 0.9em;
+}
+.recipe-entry ul li {
+    padding: 2px 0;
+    border-bottom: none;
+    position: relative;
+}
+.recipe-entry ul li::before {
+    content: '-';
+    color: var(--color-primary);
+    position: absolute;
+    left: -10px;
+}
+
+
+/* Knop stijlen */
+.modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    margin-top: 10px;
+}
+.modal-content button {
+  width: 100%;
+  max-width: 300px;
+  background-color: var(--color-secondary);
+  box-shadow: 4px 4px 0 var(--color-text);
+  margin: 0; /* Override default button margin */
+}
+.modal-content button:hover {
+  background-color: #e55337;
+}
+
+/* ➕ Plusknop en Logout knop stijlen */
+#addRecipeBtn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 2em;
+  font-weight: bold;
+  background-color: var(--color-primary);
+  color: white;
+  border: 3px solid var(--color-text);
+  box-shadow: 6px 6px 0 var(--color-text);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  z-index: 10;
+}
+#addRecipeBtn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0 var(--color-text);
+}
+#logoutBtn {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  font-size: 1.8em;
+  font-weight: bold;
+  background-color: var(--color-secondary);
+  color: white;
+  border: 3px solid var(--color-text);
+  box-shadow: 6px 6px 0 var(--color-text);
+  cursor: pointer;
+  transition: all 0.1s ease;
+  z-index: 1000;
+}
+
+#logoutBtn:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0 var(--color-text);
+}
 </style>
 </head>
 <body>
@@ -261,9 +410,152 @@ document.addEventListener("DOMContentLoaded", () => {
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cWZqbGJnbmZ0bHpub25lY3dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwNjY1ODgsImV4cCI6MjA3NzY0MjU4OH0.hWcsqknprKIuA0AGnUn1cOM4ux0U-rgyWNJxp3vTS_U";
   const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-  /* ---------- GLOBAL VARIABLES ---------- */
+  /* ---------- GLOBAL VARIABLES AND CONSTANTS ---------- */
   let recipes = {};
   let checkedItems = {};
+
+  // De door jou geleverde recepten
+  const standardRecipes = {
+        "Geen": [],
+        "Tomatenrisotto met spinazie en chorizo": [
+          {name: "Risottorijst", amount: 400, unit: "g", category: "Rijst/Couscous/Pasta"},
+          {name: "Tomatenblokjes", amount: 1, unit: "blikje", category: "Groenten"},
+          {name: "Ui", amount: 2, unit: "stuk", category: "Groenten"},
+          {name: "Spinazie", amount: 400, unit: "g", category: "Groenten"},
+          {name: "Citroen", amount: 1, unit: "stuk", category: "Groenten"},
+          {name: "Chorizo", amount: 200, unit: "g", category: "Vlees/Vis"},
+          {name: "Kippenbouillon", amount: 1, unit: "l", category: "Overig"}
+        ],
+        "Tex-mex eenpanswok met gehakt en aardappel": [
+          {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
+          {name: "Aardappelschijfjes", amount: 600, unit: "g", category: "Groenten"},
+          {name: "Mexicaanse roerbakgroenten", amount: 800, unit: "g", category: "Groenten"},
+          {name: "Cheddar", amount: 150, unit: "g", category: "Zuivel"},
+          {name: "Zure room", amount: 125, unit: "g", category: "Zuivel"},
+          {name: "Guacamole", amount: 150, unit: "g", category: "Groenten"},
+          {name: "Tacokruiden", amount: 1, unit: "zakje", category: "Kruiden"},
+          {name: "Koriander", amount: 15, unit: "g", category: "Groenten"}
+        ],
+        "Vissticks met spinazie à la crème en krieltjes": [
+          {name: "Vissticks", amount: 20, unit: "stuk", category: "Vlees/Vis"},
+          {name: "Spinazie", amount: 750, unit: "g", category: "Groenten"},
+          {name: "Krieltjes", amount: 900, unit: "g", category: "Groenten"},
+          {name: "Appelmoes", amount: 0, unit: "naar smaak", category: "Groenten"}
+        ],
+        "Ovenschotel met gehakt broccoli": [
+          {name: "Broccoli", amount: 1, unit: "stuk", category: "Groenten"},
+          {name: "Aardappelen", amount: 800, unit: "g", category: "Groenten"},
+          {name: "Spek", amount: 150, unit: "g", category: "Vlees/Vis"},
+          {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
+          {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
+          {name: "Knoflook", amount: 2, unit: "teentjes", category: "Groenten"},
+          {name: "Gehaktkruiden", amount: 1, unit: "zakje", category: "Kruiden"},
+          {name: "Roomboter", amount: 25, unit: "g", category: "Zuivel"},
+          {name: "Crème fraîche", amount: 200, unit: "ml", category: "Zuivel"}
+        ],
+        "Kikkererwtencurry met couscous": [
+          {name: "Kikkererwten", amount: 400, unit: "g", category: "Groenten"},
+          {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
+          {name: "Knoflook", amount: 1.5, unit: "teentjes", category: "Groenten"},
+          {name: "Kerriepoeder", amount: 1, unit: "el", category: "Kruiden"},
+          {name: "Kokosmelk", amount: 200, unit: "ml", category: "Zuivel"},
+          {name: "Tomatenblokjes", amount: 1, unit: "blikje", category: "Groenten"},
+          {name: "Couscous", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"}
+        ],
+        "Hutspot met speklapjes": [
+          {name: "Aardappelen", amount: 1000, unit: "g", category: "Groenten"},
+          {name: "Hutspotgroenten", amount: 500, unit: "g", category: "Groenten"},
+          {name: "Ui", amount: 2, unit: "stuk", category: "Groenten"},
+          {name: "Speklapjes", amount: 2, unit: "stuk", category: "Vlees/Vis"}
+        ],
+        "Pasta pesto": [
+          {name: "Pasta", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"},
+          {name: "Kipfilet", amount: 400, unit: "g", category: "Vlees/Vis"},
+          {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
+          {name: "Kookroom", amount: 250, unit: "ml", category: "Zuivel"},
+          {name: "Cherry tomaten", amount: 250, unit: "g", category: "Groenten"},
+          {name: "Peper", amount: 0, unit: "", category: "Kruiden"},
+          {name: "Zout", amount: 0, unit: "", category: "Kruiden"},
+          {name: "Pijnboompitten", amount: 60, unit: "g", category: "Overig"},
+          {name: "Pesto", amount: 4, unit: "el", category: "Overig"}
+        ],
+        "Prei schotel": [
+          {name: "Prei", amount: 500, unit: "g", category: "Groenten"},
+          {name: "Rode paprika", amount: 1, unit: "stuk", category: "Groenten"},
+          {name: "Aardappelschijfjes", amount: 600, unit: "g", category: "Groenten"},
+          {name: "Rundergehakt", amount: 300, unit: "g", category: "Vlees/Vis"},
+          {name: "Ei", amount: 1, unit: "stuk", category: "Overig"},
+          {name: "Kookroom", amount: 125, unit: "ml", category: "Zuivel"},
+          {name: "Maggi Prei-Kerrie mix", amount: 1, unit: "pakje", category: "Overig"}
+        ],
+        "Kip Siam": [
+          {name: "Kipfilet", amount: 250, unit: "g", category: "Vlees/Vis"},
+          {name: "Wokgroenten", amount: 700, unit: "g", category: "Groenten"},
+          {name: "Kip Siam mix", amount: 1, unit: "stuk", category: "Overig"}
+        ],
+        "Stroganov schotel": [
+          {name: "Kipgehakt", amount: 600, unit: "g", category: "Vlees/Vis"},
+          {name: "Rode paprika", amount: 2, unit: "stuk", category: "Groenten"},
+          {name: "Ui", amount: 2, unit: "stuk", category: "Groenten"},
+          {name: "Champignons", amount: 1, unit: "bakje", category: "Groenten"},
+          {name: "Crème fraîche", amount: 500, unit: "ml", category: "Zuivel"},
+          {name: "Kippenbouillonblokjes", amount: 3, unit: "stuk", category: "Kruiden"},
+          {name: "Tomatenpuree", amount: 1, unit: "blikje", category: "Groenten"},
+          {name: "Water", amount: 150, unit: "ml", category: "Overig"}
+        ],
+        "Cottage pie": [
+          {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
+          {name: "Wortels/doperwten", amount: 1, unit: "blik", category: "Groenten"},
+          {name: "Aardappelen", amount: 1000, unit: "g", category: "Groenten"},
+          {name: "Melk", amount: 500, unit: "ml", category: "Zuivel"}
+        ],
+        "Volkoren penne met rode pesto schotel": [
+          {name: "Volkoren penne", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"},
+          {name: "Rode pesto", amount: 6, unit: "el", category: "Kruiden"},
+          {name: "Italiaanse roerbakgroenten", amount: 400, unit: "g", category: "Groenten"},
+          {name: "Tomaten", amount: 400, unit: "g", category: "Groenten"},
+          {name: "Geraspte kaas", amount: 70, unit: "g", category: "Zuivel"},
+          {name: "Kookroom", amount: 200, unit: "ml", category: "Zuivel"},
+          {name: "Kipgehakt", amount: 300, unit: "g", category: "Vlees/Vis"},
+          {name: "Zongedroogde tomaten in olie", amount: 280, unit: "g", category: "Groenten"},
+          {name: "Gedroogde Italiaanse kruiden", amount: 0.5, unit: "el", category: "Kruiden"}
+        ],
+        "Kerrierijst met kip en sperziebonen": [
+            {name: "Langgraanrijst", amount: 300, unit: "g", category: "Koolhydraten"},
+            {name: "Kipfilet", amount: 300, unit: "g", category: "Vlees/Vis"},
+            {name: "Roomboter", amount: 25, unit: "g", category: "Zuivel"},
+            {name: "Kerriepoeder", amount: 1, unit: "el", category: "Kruiden"},
+            {name: "Crème fraîche", amount: 200, unit: "g", category: "Zuivel"},
+            {name: "Sperziebonen", amount: 600, unit: "g", category: "Groenten"}
+        ],
+        "Vissticks Massaman Curry": [
+            {name: "Vissticks", amount: 15, unit: "stuks", category: "Vlees/Vis"},
+            {name: "Massaman-currypasta", amount: 1, unit: "pakje", category: "Kruiden"},
+            {name: "Kokosmelk", amount: 400, unit: "ml", category: "Zuivel"},
+            {name: "Sperziebonen (diepvries)", amount: 450, unit: "g", category: "Groenten"},
+            {name: "Wortel", amount: 200, unit: "g", category: "Groenten"},
+            {name: "Rode ui", amount: 150, unit: "g", category: "Groenten"},
+            {name: "Citroen", amount: 1, unit: "stuk", category: "Groenten"},
+            {name: "Basmatirijst", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"}
+        ],
+        "Spaghetti alla Carbonara": [
+            {name: "Spaghetti", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"},
+            {name: "Spekjes", amount: 200, unit: "g", category: "Vlees/Vis"},
+            {name: "Pecorino Romano", amount: 90, unit: "g", category: "Zuivel"},
+            {name: "Middelgrote scharreleieren", amount: 4, unit: "stuk", category: "Vlees/Vis"}
+        ],
+        "Spaghetti Bolognese": [
+            {name: "Spekjes", amount: 125, unit: "g", category: "Vlees/Vis"},
+            {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
+            {name: "Wortel", amount: 150, unit: "g", category: "Groenten"},
+            {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
+            {name: "Kippenbouillon", amount: 1, unit: "l", category: "Kruiden"},
+            {name: "Heinz frito", amount: 400, unit: "ml", category: "Groenten"},
+            {name: "Tomatenpuree", amount: 1, unit: "blikje", category: "Groenten"},
+            {name: "Oregano", amount: 1, unit: "tl", category: "Kruiden"},
+            {name: "Spaghetti", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"}
+        ],
+    };
 
   /* ---------- AUTH CHECK ---------- */
   (async () => {
@@ -277,9 +569,7 @@ document.addEventListener("DOMContentLoaded", () => {
     await loadRecipes();
   })();
 
-  /* ---------- LOGOUT - REMOVED: NO #logout element in HTML ---------- */
-
-  /* ---------- LOAD RECIPES ---------- */
+  /* ---------- LOAD RECIPES AND CHECK FOR POPUP ---------- */
   async function loadRecipes() {
     const { data, error } = await supabase
       .from("recipes")
@@ -297,15 +587,80 @@ document.addEventListener("DOMContentLoaded", () => {
     data.forEach(r => { recipes[r.name] = r.data; });
     console.log("Recepten geladen:", recipes);
     initUI();
+    checkAndShowPopup(data.length); // Roep de check functie aan
   }
 
   window.loadRecipes = loadRecipes;
 
+
+  // 🚀 BIJGEWERKTE FUNCTIE: POPUP CHECK MET RECEPTDETAILS
+  function checkAndShowPopup(recipeCount) {
+    if (recipeCount === 0) {
+        // Bouw de HTML voor de receptenlijst
+        let listHtml = '';
+        Object.keys(standardRecipes)
+            .filter(name => name !== "Geen")
+            .forEach(name => {
+                const ingredients = standardRecipes[name];
+                let ingredientsList = ingredients.map(ing => 
+                    `<li>${ing.amount}${ing.unit ? ' ' + ing.unit : ''} ${ing.name} (${ing.category})</li>`
+                ).join('');
+
+                listHtml += `
+                    <div class="recipe-entry">
+                        <h4>${name}</h4>
+                        <ul>
+                            ${ingredientsList}
+                        </ul>
+                    </div>
+                `;
+            });
+        
+        document.getElementById('recipeListContainer').innerHTML = listHtml;
+        document.getElementById('initialPopup').style.display = 'flex';
+    }
+  }
+
+  // 🚀 NIEUWE FUNCTIE: VOEG STANDAARD RECEPTEN TOE
+  async function addStandardRecipes() {
+    document.getElementById('addStandardRecipesBtn').disabled = true;
+    document.getElementById('addStandardRecipesBtn').textContent = 'Bezig met uploaden... 🚀';
+
+    const recipesToInsert = Object.keys(standardRecipes)
+        .filter(name => name !== "Geen") // filter de "Geen"
+        .map(name => ({
+            user_id: window.currentUser.id,
+            name: name,
+            data: standardRecipes[name],
+        }));
+
+    if (recipesToInsert.length === 0) {
+        alert("Geen recepten om toe te voegen.");
+        document.getElementById('initialPopup').style.display = 'none';
+        return;
+    }
+
+    const { error } = await supabase
+        .from('recipes')
+        .insert(recipesToInsert);
+
+    if (error) {
+        console.error("Fout bij invoegen standaard recepten:", error);
+        alert(`Fout bij het toevoegen van standaard recepten: ${error.message}`);
+        document.getElementById('addStandardRecipesBtn').disabled = false;
+        document.getElementById('addStandardRecipesBtn').textContent = '➕ Voeg standaard recepten toe!';
+    } else {
+        alert("Standaard recepten succesvol toegevoegd!");
+        document.getElementById('initialPopup').style.display = 'none';
+        await loadRecipes(); // Herlaad de recepten en de UI
+    }
+  }
+
+
   /* ---------- UI BOUWEN - SIMPLIFIED TO ONLY POPULATE DATALISTS ---------- */
   function initUI() {
-    const recipeNames = Object.keys(recipes);
-    // const recipeInputs = document.getElementById("recipe-inputs"); // THIS CAUSED THE ERROR
-    // recipeInputs.innerHTML = ""; // THIS CAUSED THE ERROR
+    // Voeg de 'Geen' optie toe aan de receptnamen
+    const recipeNames = ["Geen", ...Object.keys(recipes).filter(name => name !== "Geen")];
 
     const days = ["day1List","day2List","day3List","day4List","day5List","day6List","day7List"];
 
@@ -388,6 +743,7 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 });
 
   document.getElementById("generate").addEventListener("click", generateList);
+  document.getElementById("addStandardRecipesBtn")?.addEventListener("click", addStandardRecipes); // Event listener voor de nieuwe knop
 
   /* ---------- EXPORT ---------- */
   document.getElementById("export").addEventListener("click", () => {
@@ -404,65 +760,29 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 
 });
 </script>
-<!-- ➕ Plusknop rechtsonder -->
 <button id="addRecipeBtn" title="Nieuw recept toevoegen">＋</button>
 
-<!-- Logout knop -->
 <button id="logoutBtn" title="Uitloggen">⏏</button>
 
-
-<style>
-#addRecipeBtn {
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  font-size: 2em;
-  font-weight: bold;
-  background-color: var(--color-primary);
-  color: white;
-  border: 3px solid var(--color-text);
-  box-shadow: 6px 6px 0 var(--color-text);
-  cursor: pointer;
-  transition: all 0.1s ease;
-}
-#addRecipeBtn:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 3px 3px 0 var(--color-text);
-}
-#logoutBtn {
-  position: fixed;
-  top: 30px;
-  right: 30px;  /* past goed naast de plusknop als je wilt */
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  font-size: 1.8em;
-  font-weight: bold;
-  background-color: var(--color-secondary);
-  color: white;
-  border: 3px solid var(--color-text);
-  box-shadow: 6px 6px 0 var(--color-text);
-  cursor: pointer;
-  transition: all 0.1s ease;
-  z-index: 1000; /* altijd boven andere content */
-}
-
-#logoutBtn:hover {
-  transform: translate(2px, 2px);
-  box-shadow: 3px 3px 0 var(--color-text);
-}
-</style>
+<div id="initialPopup" class="modal-overlay">
+  <div class="modal-content">
+    <h3>Welkom bij De Recepten Raket! 🚀</h3>
+    <p>Het lijkt erop dat je nog geen eigen recepten hebt. Voordat je begint, kun je deze **17 standaard recepten** toevoegen:</p>
+    
+    <div id="recipeListContainer">
+        </div>
+    
+    <div class="modal-buttons">
+        <button id="addStandardRecipesBtn">➕ Voeg standaard recepten toe!</button>
+        <button onclick="document.getElementById('initialPopup').style.display = 'none';">Nee, bedankt. Ik voeg ze zelf toe.</button>
+    </div>
+  </div>
+</div>
 
 <script>
-
 document.getElementById("addRecipeBtn").addEventListener("click", () => {
   window.location.href = "nieuw-recept.html";
 });
-
-
 </script>
 </body>
 </html>
