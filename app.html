@@ -584,19 +584,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     recipes = {};
-    data.forEach(r => { recipes[r.name] = r.data; });
+    data.forEach(r => { 
+        try {
+            // Probeer de JSON string te parsen
+            r.data = JSON.parse(r.data);
+        } catch (e) {
+            console.error("Fout bij parsen recept data voor:", r.name, e);
+            // Laat het ongewijzigd als het parsen faalt, of zet het op een lege array
+            r.data = []; 
+        }
+        recipes[r.name] = r.data; 
+    });
     console.log("Recepten geladen:", recipes);
     initUI();
-    checkAndShowPopup(data.length); // Roep de check functie aan
+    checkAndShowPopup(data.length); 
   }
 
   window.loadRecipes = loadRecipes;
 
 
-  // 🚀 BIJGEWERKTE FUNCTIE: POPUP CHECK MET RECEPTDETAILS
+  // POPUP CHECK MET RECEPTDETAILS
   function checkAndShowPopup(recipeCount) {
     if (recipeCount === 0) {
-        // Bouw de HTML voor de receptenlijst
         let listHtml = '';
         Object.keys(standardRecipes)
             .filter(name => name !== "Geen")
@@ -621,17 +630,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 🚀 NIEUWE FUNCTIE: VOEG STANDAARD RECEPTEN TOE
+  // FUNCTIE: VOEG STANDAARD RECEPTEN TOE (met JSON.stringify fix)
   async function addStandardRecipes() {
     document.getElementById('addStandardRecipesBtn').disabled = true;
     document.getElementById('addStandardRecipesBtn').textContent = 'Bezig met uploaden... 🚀';
 
     const recipesToInsert = Object.keys(standardRecipes)
-        .filter(name => name !== "Geen") // filter de "Geen"
+        .filter(name => name !== "Geen") 
         .map(name => ({
             user_id: window.currentUser.id,
             name: name,
-            data: standardRecipes[name],
+            // DE FIX
+            data: JSON.stringify(standardRecipes[name]),
         }));
 
     if (recipesToInsert.length === 0) {
@@ -652,22 +662,20 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
         alert("Standaard recepten succesvol toegevoegd!");
         document.getElementById('initialPopup').style.display = 'none';
-        await loadRecipes(); // Herlaad de recepten en de UI
+        await loadRecipes(); 
     }
   }
 
 
-  /* ---------- UI BOUWEN - SIMPLIFIED TO ONLY POPULATE DATALISTS ---------- */
+  /* ---------- UI BOUWEN - POPULATE DATALISTS ---------- */
   function initUI() {
-    // Voeg de 'Geen' optie toe aan de receptnamen
     const recipeNames = ["Geen", ...Object.keys(recipes).filter(name => name !== "Geen")];
-
     const days = ["day1List","day2List","day3List","day4List","day5List","day6List","day7List"];
 
     days.forEach(datalistId => {
       const datalist = document.getElementById(datalistId);
-      if (datalist) { // Add a check for safety
-        datalist.innerHTML = ""; // Clear existing options
+      if (datalist) {
+        datalist.innerHTML = "";
         recipeNames.forEach(name => {
           const opt = document.createElement("option");
           opt.value = name;
@@ -682,7 +690,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const days = ["day1","day2","day3","day4","day5","day6","day7"];
     const selected = days.map(d => document.getElementById(d)?.value.trim() || "Geen");
     const aggregated = {};
-// ... rest of generateList function is unchanged
+
     selected.forEach(r => {
       if (r === "Geen" || !recipes[r]) return;
       recipes[r].forEach(item => {
@@ -743,65 +751,64 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
 });
 
   document.getElementById("generate").addEventListener("click", generateList);
-  document.getElementById("addStandardRecipesBtn")?.addEventListener("click", addStandardRecipes); // Event listener voor de nieuwe knop
+  document.getElementById("addStandardRecipesBtn")?.addEventListener("click", addStandardRecipes);
 
-/* ---------- GECORRIGEERDE EXPORT FUNCTIE: KOPIEER NAAR KLEMBORD ---------- */
+  /* ---------- GECORRIGEERDE EXPORT FUNCTIE: KOPIEER NAAR KLEMBORD INCL. CATEGORIEËN ---------- */
   document.getElementById("export").addEventListener("click", () => {
-    // 1. Verzamel alle tekst van NIET-afgevinkte items
-    const itemsToCopy = Array.from(document.querySelectorAll(".item-text"))
-      .filter(i => !i.classList.contains("checked")) // Filter items die NIET de klasse 'checked' hebben
-      .map(i => i.textContent)
-      .join("\n"); // Voeg ze samen met een nieuwe regel
+        let itemsToCopy = "🛒 BOODSCHAPPENLIJST 🛒\n\n";
 
-    // 2. Gebruik de Clipboard API om te kopiëren
-    navigator.clipboard.writeText(itemsToCopy)
-      .then(() => {
-        // Visuele feedback voor de gebruiker
-         const exportButton = document.getElementById("export");
-         const originalText = exportButton.textContent;
-         
-         exportButton.textContent = "✅ Gekopieerd!";
-         exportButton.style.backgroundColor = "#ff6347"; // Gebruik secundaire kleur voor succes
-         exportButton.style.boxShadow = "4px 4px 0 var(--color-text)";
+        // 1. Loop door de 'section' containers (dit zijn de categorieën)
+        const sections = document.querySelectorAll(".shopping-list .section");
 
-         setTimeout(() => {
-             exportButton.textContent = originalText;
-             exportButton.style.backgroundColor = "var(--color-primary)";
-             exportButton.style.boxShadow = "4px 4px 0 var(--color-text)";
-         }, 1500);
+        sections.forEach(section => {
+            // Haal de categorienaam op uit de strong tag
+            const categoryElement = section.querySelector("strong");
+            if (categoryElement) {
+                itemsToCopy += `--- ${categoryElement.textContent} ---\n`;
+            }
 
-      })
-      .catch(err => {
-        console.error('Kopiëren naar klembord mislukt:', err);
-        alert("Kopiëren mislukt! Mogelijk is dit niet toegestaan in je browser. Probeer handmatig te kopiëren.");
-      });
-  });
+            // Haal alle lijstitems op binnen deze categorie
+            const listItems = section.querySelectorAll("li.check-item");
+            
+            listItems.forEach(li => {
+                const checkbox = li.querySelector(".item-checkbox");
+                const textElement = li.querySelector(".item-text");
 
-});
-</script>
-<button id="addRecipeBtn" title="Nieuw recept toevoegen">＋</button>
+                // 2. Filter en formatteer: alleen NIET-afgevinkte items
+                if (checkbox && !checkbox.checked && textElement) {
+                    itemsToCopy += `• ${textElement.textContent}\n`;
+                }
+            });
+            
+            itemsToCopy += "\n"; 
+        });
 
-<button id="logoutBtn" title="Uitloggen">⏏</button>
 
-<div id="initialPopup" class="modal-overlay">
-  <div class="modal-content">
-    <h3>Welkom bij De Recepten Raket! 🚀</h3>
-    <p>Het lijkt erop dat je nog geen eigen recepten hebt. Voordat je begint, kun je deze **17 standaard recepten** toevoegen:</p>
-    
-    <div id="recipeListContainer">
-        </div>
-    
-    <div class="modal-buttons">
-        <button id="addStandardRecipesBtn">➕ Voeg standaard recepten toe!</button>
-        <button onclick="document.getElementById('initialPopup').style.display = 'none';">Nee, bedankt. Ik voeg ze zelf toe.</button>
-    </div>
-  </div>
-</div>
+        // 3. Gebruik de Clipboard API om te kopiëren
+        navigator.clipboard.writeText(itemsToCopy)
+            .then(() => {
+                // Visuele feedback voor de gebruiker
+                const exportButton = document.getElementById("export");
+                const originalText = exportButton.textContent;
+                
+                exportButton.textContent = "✅ Gekopieerd!";
+                exportButton.style.backgroundColor = "#ff6347";
+                exportButton.style.boxShadow = "4px 4px 0 var(--color-text)";
 
-<script>
-document.getElementById("addRecipeBtn").addEventListener("click", () => {
-  window.location.href = "nieuw-recept.html";
-});
+                setTimeout(() => {
+                    exportButton.textContent = originalText;
+                    exportButton.style.backgroundColor = "var(--color-primary)";
+                    exportButton.style.boxShadow = "4px 4px 0 var(--color-text)";
+                }, 1500);
+
+            })
+            .catch(err => {
+                console.error('Kopiëren naar klembord mislukt:', err);
+                alert("Kopiëren mislukt! Zorg ervoor dat de site is toegestaan om het klembord te gebruiken.");
+            });
+    }); // <-- Afsluiting van de export event listener
+
+}); // <-- Afsluiting van de DOMContentLoaded event listener (Dit was waarschijnlijk de missende '}')
 </script>
 </body>
 </html>
