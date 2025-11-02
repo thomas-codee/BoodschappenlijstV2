@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login - De Recepten Raket!</title>
+<link rel="icon" type="image/png" href="logo.png">
+<meta name="theme-color" content="#5cb377">
+
+<!-- Simpele, speelse stijl in lijn met de app -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=Kalam:wght@300;400;700&display=swap');
+
+:root {
+  --color-primary: #5cb377;
+  --color-secondary: #ff6347;
+  --color-background: #fdf6e3;
+  --color-text: #2c3e50;
+  --font-heading: 'Cabin Sketch', cursive;
+  --font-body: 'Kalam', cursive;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  font-family: var(--font-heading);
+  color: var(--color-secondary);
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+
+form {
+  background: white;
+  padding: 30px;
+  border: 3px solid var(--color-text);
+  border-radius: 20px;
+  box-shadow: 6px 6px 0 var(--color-primary);
+  max-width: 320px;
+  width: 100%;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 1em;
+  border: 3px solid var(--color-text);
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-weight: bold;
+  letter-spacing: 1px;
+  background-color: var(--color-primary);
+  color: white;
+  border: 3px solid var(--color-text);
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 4px 4px 0 var(--color-text);
+  transition: all 0.1s ease;
+}
+
+button:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--color-text);
+}
+
+#msg {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: var(--color-secondary);
+}
+</style>
+</head>
+<body>
+
+<h1>🚀 De Recepten Raket</h1>
+<p>Log in om je recepten en boodschappenlijst te beheren!</p>
+
+<form id="loginForm">
+  <input type="email" id="email" placeholder="E-mailadres" required>
+  <input type="password" id="password" placeholder="Wachtwoord" required>
+  <button type="submit">Inloggen</button>
+  <button type="button" id="signup">Account aanmaken</button>
+  <p id="msg"></p>
+</form>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabaseUrl = "https://rtqfjlbgnftlznonecwj.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cWZqbGJnbmZ0bHpub25lY3dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwNjY1ODgsImV4cCI6MjA3NzY0MjU4OH0.hWcsqknprKIuA0AGnUn1cOM4ux0U-rgyWNJxp3vTS_U";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// 🔄 Check of iemand al ingelogd is
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) window.location.href = "app.html";
+})();
+
+// 🔑 Inloggen
+document.getElementById("loginForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("msg");
+
+  msg.textContent = "Bezig met inloggen...";
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    msg.textContent = "Fout: " + error.message;
+  } else {
+    msg.textContent = "Inloggen gelukt! Even geduld...";
+    window.location.href = "app.html";
+  }
+});
+
+// 🆕 Registreren
+document.getElementById("signup").addEventListener("click", async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const msg = document.getElementById("msg");
+
+  if (!email || !password) {
+    msg.textContent = "Vul eerst e-mail en wachtwoord in!";
+    return;
+  }
+
+  msg.textContent = "Account aanmaken...";
+  const { error } = await supabase.auth.signUp({ email, password });
+
+  if (error) msg.textContent = "Fout: " + error.message;
+  else msg.textContent = "Account aangemaakt! Check je mail om te bevestigen.";
+});
+</script>
+</body>
+</html>

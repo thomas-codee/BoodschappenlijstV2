@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>De Recepten Raket!</title>
+
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="apple-touch-icon" href="logo.png">
+<meta name="theme-color" content="#5cb377">
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=Kalam:wght@300;400;700&display=swap');
+
+:root{
+  --color-primary: #5cb377;
+  --color-secondary: #ff6347;
+  --color-background: #fdf6e3;
+  --color-text: #2c3e50;
+  --font-heading: 'Cabin Sketch', cursive;
+  --font-body: 'Kalam', cursive;
+}
+
+body{
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  min-height: 100vh;
+  gap: 20px;
+}
+
+@media (min-width: 768px){
+  body{ flex-direction: row; align-items: flex-start; gap: 40px; }
+}
+
+h2{
+  font-family: var(--font-heading);
+  color: var(--color-secondary);
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 2.2em;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+  border-bottom: 3px dashed var(--color-primary);
+  padding-bottom: 10px;
+  position: relative;
+}
+
+h2 img.logo-header{
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+}
+
+.controls, .shopping-list{
+  background: #fff;
+  padding: 20px;
+  border-radius: 20px;
+  border: 3px solid var(--color-text);
+}
+
+.controls{
+  flex: 1;
+  max-width: 100%;
+  box-shadow: 6px 6px 0 var(--color-primary);
+}
+
+.shopping-list{
+  flex: 2;
+  min-width: 250px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-bottom: 200px; /* ruimte voor decoratieve afbeelding */
+  box-shadow: -8px 8px 0 var(--color-secondary);
+}
+
+label{
+  font-weight: 700;
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-size: 1.05em;
+}
+
+input[type="text"], button{
+  font-family: var(--font-body);
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  font-size: 1em;
+  border: 3px solid var(--color-text);
+  border-radius: 10px;
+  box-sizing: border-box;
+  background-color: #fffaf0;
+}
+
+input[type="text"]:focus{
+  border-color: var(--color-secondary);
+  box-shadow: 3px 3px 0 var(--color-secondary);
+  outline: none;
+}
+
+button{
+  background-color: var(--color-primary);
+  color: white;
+  border: 3px solid var(--color-text);
+  cursor: pointer;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-top: 10px;
+  box-shadow: 4px 4px 0 var(--color-text);
+  transition: all .1s ease;
+}
+
+button:hover{
+  background-color: #4ca067;
+  transform: translate(2px,2px);
+  box-shadow: 2px 2px 0 var(--color-text);
+}
+
+.shopping-list .section{
+  margin-bottom: 15px;
+  padding-bottom: 8px;
+  border-bottom: 2px dotted var(--color-primary);
+}
+
+.shopping-list .section:last-child{ border-bottom: none; }
+
+.shopping-list strong{
+  font-family: var(--font-heading);
+  font-size: 1.3em;
+  color: var(--color-primary);
+}
+
+.shopping-list ul{
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0 0;
+}
+
+.shopping-list li{
+  padding: 5px 0;
+  border-bottom: 1px solid #eee;
+  margin-left: 10px;
+  position: relative;
+}
+
+.shopping-list li::before{
+  content: '★';
+  color: var(--color-secondary);
+  font-size: 1em;
+  position: absolute;
+  left: -20px;
+}
+
+/* kleiner decoratief plaatje */
+.shopping-list-image{
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 120px;
+  height: auto;
+  opacity: 0.9;
+  z-index: 1;
+  pointer-events: none;
+  background: white;
+  padding: 10px 10px 30px 10px;
+  border: 1px solid #ccc;
+  box-shadow: 4px 4px 12px rgba(0,0,0,0.2);
+}
+
+.check-item{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.item-checkbox{ transform: scale(1.3); accent-color: var(--color-primary); cursor: pointer; }
+
+.item-text{
+  transition: background-color .3s, color .3s;
+  padding: 3px 6px;
+  border-radius: 8px;
+}
+.item-text.checked{
+  background-color: #b4e0b4;
+  color: #2c3e50;
+  text-decoration: line-through;
+}
+
+/* EXPORT knop - kleiner en rechts uitlijnen */
+#export{
+  margin-top: 10px;
+  margin-left: auto;      /* dwingt de knop naar rechts */
+  display: none;          /* zichtbaar na generate */
+  font-size: 0.78rem;     /* kleiner lettertype */
+  padding: 6px 10px;      /* kleinere padding */
+  height: auto;
+  line-height: 1;
+  border-radius: 8px;
+}
+
+/* mobile adjustments */
+@media (max-width: 767px){
+  .shopping-list{ padding-bottom: 250px; padding-top: 12px; }
+  .shopping-list-image{ bottom: 20px; width: 100px; }
+  #export{ font-size: 0.75rem; padding: 5px 8px; }
+}
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <h2>Selecteer Je Maaltijden!</h2>
+
+  <label for="day1">Maandag</label>
+  <input type="text" list="day1List" id="day1" placeholder="Kies een recept..."><datalist id="day1List"></datalist>
+
+  <label for="day2">Dinsdag</label>
+  <input type="text" list="day2List" id="day2" placeholder="Kies een recept..."><datalist id="day2List"></datalist>
+
+  <label for="day3">Woensdag</label>
+  <input type="text" list="day3List" id="day3" placeholder="Kies een recept..."><datalist id="day3List"></datalist>
+
+  <label for="day4">Donderdag</label>
+  <input type="text" list="day4List" id="day4" placeholder="Kies een recept..."><datalist id="day4List"></datalist>
+
+  <label for="day5">Vrijdag</label>
+  <input type="text" list="day5List" id="day5" placeholder="Kies een recept..."><datalist id="day5List"></datalist>
+
+  <label for="day6">Zaterdag</label>
+  <input type="text" list="day6List" id="day6" placeholder="Kies een recept..."><datalist id="day6List"></datalist>
+
+  <label for="day7">Zondag</label>
+  <input type="text" list="day7List" id="day7" placeholder="Kies een recept..."><datalist id="day7List"></datalist>
+
+  <button id="generate">GO! Maak de Boodschappenlijst!</button>
+</div>
+
+<div class="shopping-list">
+  <h2>Boodschappenlijst! <img src="logo.png" alt="Logo" class="logo-header"></h2>
+  <div class="list-items-container" id="list"></div>
+  <button id="export">📄 Exporteer</button>
+  <img src="picture.jpg" alt="Decoratieve afbeelding" class="shopping-list-image">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+/* ---------- SUPABASE SETUP ---------- */
+const supabaseUrl = "https://rtqfjlbgnftlznonecwj.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cWZqbGJnbmZ0bHpub25lY3dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwNjY1ODgsImV4cCI6MjA3NzY0MjU4OH0.hWcsqknprKIuA0AGnUn1cOM4ux0U-rgyWNJxp3vTS_U";
+const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+/* ---------- AUTH CHECK ---------- */
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    window.location.href = "index.html"; // niet ingelogd? terug naar login
+    return;
+  }
+  window.currentUser = session.user;
+  console.log("Ingelogd als:", window.currentUser.email);
+  loadRecipes();
+})();
+
+/* ---------- LOGOUT ---------- */
+document.getElementById("logout").addEventListener("click", async () => {
+  await supabase.auth.signOut();
+  window.location.href = "index.html";
+});
+
+const recipes2 = {
+  "Geen": [],
+  "Tomatenrisotto met spinazie en chorizo": [
+    {name: "Risottorijst", amount: 400, unit: "g", category: "Rijst/Couscous/Pasta"},
+    {name: "Tomatenblokjes", amount: 1, unit: "blikje", category: "Groenten"},
+    {name: "Ui", amount: 2, unit: "stuk", category: "Groenten"},
+    {name: "Spinazie", amount: 400, unit: "g", category: "Groenten"},
+    {name: "Citroen", amount: 1, unit: "stuk", category: "Groenten"},
+    {name: "Chorizo", amount: 200, unit: "g", category: "Vlees/Vis"},
+    {name: "Kippenbouillon", amount: 1, unit: "l", category: "Overig"}
+  ],
+  "Tex-mex eenpanswok met gehakt en aardappel": [
+    {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
+    {name: "Aardappelschijfjes", amount: 600, unit: "g", category: "Groenten"},
+    {name: "Mexicaanse roerbakgroenten", amount: 800, unit: "g", category: "Groenten"},
+    {name: "Cheddar", amount: 150, unit: "g", category: "Zuivel"},
+    {name: "Zure room", amount: 125, unit: "g", category: "Zuivel"},
+    {name: "Guacamole", amount: 150, unit: "g", category: "Groenten"},
+    {name: "Tacokruiden", amount: 1, unit: "zakje", category: "Kruiden"},
+    {name: "Koriander", amount: 15, unit: "g", category: "Groenten"}
+  ],
+  "Vissticks met spinazie à la crème en krieltjes": [
+    {name: "Vissticks", amount: 20, unit: "stuk", category: "Vlees/Vis"},
+    {name: "Spinazie", amount: 750, unit: "g", category: "Groenten"},
+    {name: "Krieltjes", amount: 900, unit: "g", category: "Groenten"},
+    {name: "Appelmoes", amount: 0, unit: "naar smaak", category: "Groenten"}
+  ],
+  "Ovenschotel met gehakt broccoli": [
+    {name: "Broccoli", amount: 1, unit: "stuk", category: "Groenten"},
+    {name: "Aardappelen", amount: 800, unit: "g", category: "Groenten"},
+    {name: "Spek", amount: 150, unit: "g", category: "Vlees/Vis"},
+    {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
+    {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
+    {name: "Knoflook", amount: 2, unit: "teentjes", category: "Groenten"},
+    {name: "Gehaktkruiden", amount: 1, unit: "zakje", category: "Kruiden"},
+    {name: "Roomboter", amount: 25, unit: "g", category: "Zuivel"},
+    {name: "Crème fraîche", amount: 200, unit: "ml", category: "Zuivel"}
+  ],
+  "Kikkererwtencurry met couscous": [
+    {name: "Kikkererwten", amount: 400, unit: "g", category: "Groenten"},
+    {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
+    {name: "Knoflook", amount: 1.5, unit: "teentjes", category: "Groenten"},
+    {name: "Kerriepoeder", amount: 1, unit: "el", category: "Kruiden"},
+    {name: "Kokosmelk", amount: 200, unit: "ml", category: "Zuivel"},
+    {name: "Tomatenblokjes", amount: 1, unit: "blikje", category: "Groenten"},
+    {name: "Couscous", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"}
+  ],
+  "Hutspot met speklapjes": [
+    {name: "Aardappelen", amount: 1000, unit: "g", category: "Groenten"},
+    {name: "Hutspotgroenten", amount: 500, unit: "g", category: "Groenten"},
+    {name: "Ui", amount: 2, unit: "stuk", category: "Groenten"},
+    {name: "Speklapjes", amount: 2, unit: "stuk", category: "Vlees/Vis"}
+  ],
+  "Pasta pesto": [
+    {name: "Pasta", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"},
+    {name: "Kipfilet", amount: 400, unit: "g", category: "Vlees/Vis"},
+    {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
+    {name: "Kookroom", amount: 250, unit: "ml", category: "Zuivel"},
+    {name: "Cherry tomaten", amount: 250, unit: "g", category: "Groenten"},
+    {name: "Peper", amount: 0, unit: "", category: "Kruiden"},
+    {name: "Zout", amount: 0, unit: "", category: "Kruiden"},
+    {name: "Pijnboompitten", amount: 60, unit: "g", category: "Overig"},
+    {name: "Pesto", amount: 4, unit: "el", category: "Overig"}
+  ],
+  "Prei schotel": [
+    {name: "Prei", amount: 500, unit: "g", category: "Groenten"},
+    {name: "Rode paprika", amount: 1, unit: "stuk", category: "Groenten"},
+    {name: "Aardappelschijfjes", amount: 600, unit: "g", category: "Groenten"},
+    {name: "Rundergehakt", amount: 300, unit: "g", category: "Vlees/Vis"},
+    {name: "Ei", amount: 1, unit: "stuk", category: "Overig"},
+    {name: "Kookroom", amount: 125, unit: "ml", category: "Zuivel"},
+    {name: "Maggi Prei-Kerrie mix", amount: 1, unit: "pakje", category: "Overig"}
+  ],
+  "Kip Siam": [
+    {name: "Kipfilet", amount: 250, unit: "g", category: "Vlees/Vis"},
+    {name: "Wokgroenten", amount: 700, unit: "g", category: "Groenten"},
+    {name: "Kip Siam mix", amount: 1, unit: "stuk", category: "Overig"}
+  ],
+  "Stroganov schotel": [
+    {name: "Kipgehakt", amount: 600, unit: "g", category: "Vlees/Vis"},
+    {name: "Rode paprika", amount: 2, unit: "stuk", category: "Groenten"},
+    {name: "Ui", amount: 2, unit: "stuk", category: "Groenten"},
+    {name: "Champignons", amount: 1, unit: "bakje", category: "Groenten"},
+    {name: "Crème fraîche", amount: 500, unit: "ml", category: "Zuivel"},
+    {name: "Kippenbouillonblokjes", amount: 3, unit: "stuk", category: "Kruiden"},
+    {name: "Tomatenpuree", amount: 1, unit: "blikje", category: "Groenten"},
+    {name: "Water", amount: 150, unit: "ml", category: "Overig"}
+  ],
+  "Cottage pie": [
+    {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
+    {name: "Wortels/doperwten", amount: 1, unit: "blik", category: "Groenten"},
+    {name: "Aardappelen", amount: 1000, unit: "g", category: "Groenten"},
+    {name: "Melk", amount: 500, unit: "ml", category: "Zuivel"}
+  ],
+  "Volkoren penne met rode pesto schotel": [
+    {name: "Volkoren penne", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"},
+    {name: "Rode pesto", amount: 6, unit: "el", category: "Kruiden"},
+    {name: "Italiaanse roerbakgroenten", amount: 400, unit: "g", category: "Groenten"},
+    {name: "Tomaten", amount: 400, unit: "g", category: "Groenten"},
+    {name: "Geraspte kaas", amount: 70, unit: "g", category: "Zuivel"},
+    {name: "Kookroom", amount: 200, unit: "ml", category: "Zuivel"},
+    {name: "Kipgehakt", amount: 300, unit: "g", category: "Vlees/Vis"},
+    {name: "Zongedroogde tomaten in olie", amount: 280, unit: "g", category: "Groenten"},
+    {name: "Gedroogde Italiaanse kruiden", amount: 0.5, unit: "el", category: "Kruiden"}
+],
+"Kerrierijst met kip en sperziebonen": [
+    {name: "Langgraanrijst", amount: 300, unit: "g", category: "Koolhydraten"},
+    {name: "Kipfilet", amount: 300, unit: "g", category: "Vlees/Vis"},
+    {name: "Roomboter", amount: 25, unit: "g", category: "Zuivel"},
+    {name: "Kerriepoeder", amount: 1, unit: "el", category: "Kruiden"},
+    {name: "Crème fraîche", amount: 200, unit: "g", category: "Zuivel"},
+    {name: "Sperziebonen", amount: 600, unit: "g", category: "Groenten"}
+],
+"Vissticks Massaman Curry": [
+    {name: "Vissticks", amount: 15, unit: "stuks", category: "Vlees/Vis"},
+    {name: "Massaman-currypasta", amount: 1, unit: "pakje", category: "Kruiden"},
+    {name: "Kokosmelk", amount: 400, unit: "ml", category: "Zuivel"},
+    {name: "Sperziebonen (diepvries)", amount: 450, unit: "g", category: "Groenten"},
+    {name: "Wortel", amount: 200, unit: "g", category: "Groenten"},
+    {name: "Rode ui", amount: 150, unit: "g", category: "Groenten"},
+    {name: "Citroen", amount: 1, unit: "stuk", category: "Groenten"},
+    {name: "Basmatirijst", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"}
+],
+"Spaghetti alla Carbonara": [
+    {name: "Spaghetti", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"},
+    {name: "Spekjes", amount: 200, unit: "g", category: "Vlees/Vis"},
+    {name: "Pecorino Romano", amount: 90, unit: "g", category: "Zuivel"},
+    {name: "Middelgrote scharreleieren", amount: 4, unit: "stuk", category: "Vlees/Vis"}
+],
+"Spaghetti Bolognese": [
+    {name: "Spekjes", amount: 125, unit: "g", category: "Vlees/Vis"},
+    {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
+    {name: "Wortel", amount: 150, unit: "g", category: "Groenten"},
+    {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
+    {name: "Kippenbouillon", amount: 1, unit: "l", category: "Kruiden"},
+    {name: "Heinz frito", amount: 400, unit: "ml", category: "Groenten"},
+    {name: "Tomatenpuree", amount: 1, unit: "blikje", category: "Groenten"},
+    {name: "Oregano", amount: 1, unit: "tl", category: "Kruiden"},
+    {name: "Spaghetti", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"}
+],
+};
+
+/* ---------- LOAD RECIPES ---------- */
+let recipes = {};
+async function loadRecipes() {
+  const { data, error } = await supabase.from("recipes").select("*");
+  if (error) {
+    console.error("Fout bij laden recepten:", error);
+    alert("Kon recepten niet laden!");
+    return;
+  }
+  // Zet de recepten in een eenvoudig object
+  data.forEach(r => { recipes[r.name] = r.data; });
+  console.log("Recepten geladen:", recipes);
+  initUI();
+}
+
+/* ---------- UI BOUWEN ---------- */
+function initUI() {
+  const recipeNames = Object.keys(recipes);
+  const recipeInputs = document.getElementById("recipe-inputs");
+  recipeInputs.innerHTML = "";
+  const days = ["Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag","Zondag"];
+  days.forEach((day, idx) => {
+    const id = "day" + (idx+1);
+    const label = document.createElement("label");
+    label.setAttribute("for", id);
+    label.textContent = day;
+    const input = document.createElement("input");
+    input.type = "text";
+    input.setAttribute("list", id + "List");
+    input.id = id;
+    const datalist = document.createElement("datalist");
+    datalist.id = id + "List";
+    recipeNames.forEach(name => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      datalist.appendChild(opt);
+    });
+    recipeInputs.appendChild(label);
+    recipeInputs.appendChild(input);
+    recipeInputs.appendChild(datalist);
+  });
+}
+
+/* ---------- GENERATE SHOPPING LIST ---------- */
+let checkedItems = {};
+
+function generateList() {
+  const days = ["day1","day2","day3","day4","day5","day6","day7"];
+  const selected = days.map(d => document.getElementById(d)?.value.trim() || "Geen");
+  const aggregated = {};
+  selected.forEach(r => {
+    if (r === "Geen" || !recipes[r]) return;
+    recipes[r].forEach(item => {
+      const key = item.name + " (" + item.unit + ")";
+      if (!aggregated[item.category]) aggregated[item.category] = {};
+      if (!aggregated[item.category][key]) aggregated[item.category][key] = 0;
+      aggregated[item.category][key] += item.amount;
+    });
+  });
+
+  let html = "";
+  Object.keys(aggregated).forEach(cat => {
+    html += `<div class="section"><strong>${cat}</strong><ul>`;
+    Object.keys(aggregated[cat]).forEach(k => {
+      const unitMatch = k.match(/\((.*)\)/);
+      const unit = unitMatch ? unitMatch[1] : '';
+      const id = k.replace(/\s+/g,'_');
+      const checked = checkedItems[id] ? 'checked' : '';
+      const textClass = checkedItems[id] ? 'item-text checked' : 'item-text';
+      html += `<li class="check-item">
+                 <input type="checkbox" class="item-checkbox" data-id="${id}" ${checked}>
+                 <span class="${textClass}" id="${id}">${k.split(" (")[0]}: ${aggregated[cat][k]} ${unit}</span>
+               </li>`;
+    });
+    html += "</ul></div>";
+  });
+
+  document.getElementById("list").innerHTML = html;
+  document.getElementById("export").style.display = "block";
+
+  document.querySelectorAll(".item-checkbox").forEach(cb => {
+    cb.addEventListener("change", () => {
+      const id = cb.dataset.id;
+      const textEl = document.getElementById(id);
+      if (cb.checked) {
+        textEl.classList.add("checked");
+        checkedItems[id] = true;
+      } else {
+        textEl.classList.remove("checked");
+        delete checkedItems[id];
+      }
+    });
+  });
+}
+
+document.getElementById("generate").addEventListener("click", generateList);
+
+/* ---------- EXPORT ---------- */
+document.getElementById("export").addEventListener("click", () => {
+  const items = Array.from(document.querySelectorAll(".item-text"))
+    .filter(i => !i.classList.contains("checked"))
+    .map(i => i.textContent)
+    .join("\n");
+  const blob = new Blob([items], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "boodschappenlijst.txt";
+  a.click();
+});
+</script>
+</body>
+</html>
