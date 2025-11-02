@@ -745,17 +745,36 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   document.getElementById("generate").addEventListener("click", generateList);
   document.getElementById("addStandardRecipesBtn")?.addEventListener("click", addStandardRecipes); // Event listener voor de nieuwe knop
 
-  /* ---------- EXPORT ---------- */
+/* ---------- GECORRIGEERDE EXPORT FUNCTIE: KOPIEER NAAR KLEMBORD ---------- */
   document.getElementById("export").addEventListener("click", () => {
-    const items = Array.from(document.querySelectorAll(".item-text"))
-      .filter(i => !i.classList.contains("checked"))
+    // 1. Verzamel alle tekst van NIET-afgevinkte items
+    const itemsToCopy = Array.from(document.querySelectorAll(".item-text"))
+      .filter(i => !i.classList.contains("checked")) // Filter items die NIET de klasse 'checked' hebben
       .map(i => i.textContent)
-      .join("\n");
-    const blob = new Blob([items], { type: "text/plain" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "boodschappenlijst.txt";
-    a.click();
+      .join("\n"); // Voeg ze samen met een nieuwe regel
+
+    // 2. Gebruik de Clipboard API om te kopiëren
+    navigator.clipboard.writeText(itemsToCopy)
+      .then(() => {
+        // Visuele feedback voor de gebruiker
+         const exportButton = document.getElementById("export");
+         const originalText = exportButton.textContent;
+         
+         exportButton.textContent = "✅ Gekopieerd!";
+         exportButton.style.backgroundColor = "#ff6347"; // Gebruik secundaire kleur voor succes
+         exportButton.style.boxShadow = "4px 4px 0 var(--color-text)";
+
+         setTimeout(() => {
+             exportButton.textContent = originalText;
+             exportButton.style.backgroundColor = "var(--color-primary)";
+             exportButton.style.boxShadow = "4px 4px 0 var(--color-text)";
+         }, 1500);
+
+      })
+      .catch(err => {
+        console.error('Kopiëren naar klembord mislukt:', err);
+        alert("Kopiëren mislukt! Mogelijk is dit niet toegestaan in je browser. Probeer handmatig te kopiëren.");
+      });
   });
 
 });
