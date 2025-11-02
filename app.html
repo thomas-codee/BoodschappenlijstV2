@@ -254,153 +254,157 @@ button:hover{
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-/* ---------- SUPABASE SETUP ---------- */
-const supabaseUrl = "https://rtqfjlbgnftlznonecwj.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cWZqbGJnbmZ0bHpub25lY3dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwNjY1ODgsImV4cCI6MjA3NzY0MjU4OH0.hWcsqknprKIuA0AGnUn1cOM4ux0U-rgyWNJxp3vTS_U";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+document.addEventListener("DOMContentLoaded", () => {
 
-/* ---------- AUTH CHECK ---------- */
-(async () => {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.href = "index.html"; // niet ingelogd? terug naar login
-    return;
+  /* ---------- SUPABASE SETUP ---------- */
+  const supabaseUrl = "https://rtqfjlbgnftlznonecwj.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0cWZqbGJnbmZ0bHpub25lY3dqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwNjY1ODgsImV4cCI6MjA3NzY0MjU4OH0.hWcsqknprKIuA0AGnUn1cOM4ux0U-rgyWNJxp3vTS_U";
+  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  /* ---------- GLOBAL VARIABLES ---------- */
+  let recipes = {};
+  let checkedItems = {};
+
+  /* ---------- AUTH CHECK ---------- */
+  (async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = "index.html";
+      return;
+    }
+    window.currentUser = session.user;
+    console.log("Ingelogd als:", window.currentUser.email);
+    await loadRecipes();
+  })();
+
+  /* ---------- LOGOUT ---------- */
+  document.getElementById("logout").addEventListener("click", async () => {
+    await supabase.auth.signOut();
+    window.location.href = "index.html";
+  });
+
+  /* ---------- LOAD RECIPES ---------- */
+  async function loadRecipes() {
+    const { data, error } = await supabase
+      .from("recipes")
+      .select("*")
+      .eq("user_id", window.currentUser.id)
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      console.error("Fout bij laden recepten:", error);
+      alert("Kon recepten niet laden!");
+      return;
+    }
+
+    recipes = {};
+    data.forEach(r => { recipes[r.name] = r.data; });
+    console.log("Recepten geladen:", recipes);
+    initUI();
   }
-  window.currentUser = session.user;
-  console.log("Ingelogd als:", window.currentUser.email);
-  await loadRecipes();
-})();
 
-/* ---------- LOGOUT ---------- */
-document.getElementById("logout").addEventListener("click", async () => {
-  await supabase.auth.signOut();
-  window.location.href = "index.html";
-});
+  window.loadRecipes = loadRecipes;
 
-/* ---------- LOAD RECIPES ---------- */
-let recipes = {};
-async function loadRecipes() {
-  const { data, error } = await supabase
-    .from("recipes")
-    .select("*")
-    .eq("user_id", window.currentUser.id)
-    .order("created_at", { ascending: true });
+  /* ---------- UI BOUWEN ---------- */
+  function initUI() {
+    const recipeNames = Object.keys(recipes);
+    const recipeInputs = document.getElementById("recipe-inputs");
+    recipeInputs.innerHTML = "";
 
-  if (error) {
-    console.error("Fout bij laden recepten:", error);
-    alert("Kon recepten niet laden!");
-    return;
+    const days = ["Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag","Zondag"];
+    days.forEach((day, idx) => {
+      const id = "day" + (idx+1);
+
+      const label = document.createElement("label");
+      label.setAttribute("for", id);
+      label.textContent = day + ": ";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.setAttribute("list", id + "List");
+      input.id = id;
+
+      const datalist = document.createElement("datalist");
+      datalist.id = id + "List";
+      recipeNames.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        datalist.appendChild(opt);
+      });
+
+      recipeInputs.appendChild(label);
+      recipeInputs.appendChild(input);
+      recipeInputs.appendChild(datalist);
+      recipeInputs.appendChild(document.createElement("br"));
+    });
   }
 
-  recipes = {}; // reset
-  data.forEach(r => { recipes[r.name] = r.data; });
-  console.log("Recepten geladen:", recipes);
-  initUI();
-}
+  /* ---------- GENERATE SHOPPING LIST ---------- */
+  function generateList() {
+    const days = ["day1","day2","day3","day4","day5","day6","day7"];
+    const selected = days.map(d => document.getElementById(d)?.value.trim() || "Geen");
+    const aggregated = {};
 
-// Globaal beschikbaar maken
-window.loadRecipes = loadRecipes;
-
-/* ---------- UI BOUWEN ---------- */
-function initUI() {
-  const recipeNames = Object.keys(recipes);
-  const recipeInputs = document.getElementById("recipe-inputs");
-  recipeInputs.innerHTML = "";
-
-  const days = ["Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag","Zondag"];
-  days.forEach((day, idx) => {
-    const id = "day" + (idx+1);
-
-    const label = document.createElement("label");
-    label.setAttribute("for", id);
-    label.textContent = day + ": ";
-
-    const input = document.createElement("input");
-    input.type = "text";
-    input.setAttribute("list", id + "List");
-    input.id = id;
-
-    const datalist = document.createElement("datalist");
-    datalist.id = id + "List";
-    recipeNames.forEach(name => {
-      const opt = document.createElement("option");
-      opt.value = name;
-      datalist.appendChild(opt);
+    selected.forEach(r => {
+      if (r === "Geen" || !recipes[r]) return;
+      recipes[r].forEach(item => {
+        const key = item.name + " (" + item.unit + ")";
+        if (!aggregated[item.category]) aggregated[item.category] = {};
+        if (!aggregated[item.category][key]) aggregated[item.category][key] = 0;
+        aggregated[item.category][key] += item.amount;
+      });
     });
 
-    recipeInputs.appendChild(label);
-    recipeInputs.appendChild(input);
-    recipeInputs.appendChild(datalist);
-    recipeInputs.appendChild(document.createElement("br"));
-  });
-}
-
-/* ---------- GENERATE SHOPPING LIST ---------- */
-let checkedItems = {};
-
-function generateList() {
-  const days = ["day1","day2","day3","day4","day5","day6","day7"];
-  const selected = days.map(d => document.getElementById(d)?.value.trim() || "Geen");
-  const aggregated = {};
-  selected.forEach(r => {
-    if (r === "Geen" || !recipes[r]) return;
-    recipes[r].forEach(item => {
-      const key = item.name + " (" + item.unit + ")";
-      if (!aggregated[item.category]) aggregated[item.category] = {};
-      if (!aggregated[item.category][key]) aggregated[item.category][key] = 0;
-      aggregated[item.category][key] += item.amount;
+    let html = "";
+    Object.keys(aggregated).forEach(cat => {
+      html += `<div class="section"><strong>${cat}</strong><ul>`;
+      Object.keys(aggregated[cat]).forEach(k => {
+        const unitMatch = k.match(/\((.*)\)/);
+        const unit = unitMatch ? unitMatch[1] : '';
+        const id = k.replace(/\s+/g,'_');
+        const checked = checkedItems[id] ? 'checked' : '';
+        const textClass = checkedItems[id] ? 'item-text checked' : 'item-text';
+        html += `<li class="check-item">
+                   <input type="checkbox" class="item-checkbox" data-id="${id}" ${checked}>
+                   <span class="${textClass}" id="${id}">${k.split(" (")[0]}: ${aggregated[cat][k]} ${unit}</span>
+                 </li>`;
+      });
+      html += "</ul></div>";
     });
-  });
 
-  let html = "";
-  Object.keys(aggregated).forEach(cat => {
-    html += `<div class="section"><strong>${cat}</strong><ul>`;
-    Object.keys(aggregated[cat]).forEach(k => {
-      const unitMatch = k.match(/\((.*)\)/);
-      const unit = unitMatch ? unitMatch[1] : '';
-      const id = k.replace(/\s+/g,'_');
-      const checked = checkedItems[id] ? 'checked' : '';
-      const textClass = checkedItems[id] ? 'item-text checked' : 'item-text';
-      html += `<li class="check-item">
-                 <input type="checkbox" class="item-checkbox" data-id="${id}" ${checked}>
-                 <span class="${textClass}" id="${id}">${k.split(" (")[0]}: ${aggregated[cat][k]} ${unit}</span>
-               </li>`;
+    document.getElementById("list").innerHTML = html;
+    document.getElementById("export").style.display = "block";
+
+    document.querySelectorAll(".item-checkbox").forEach(cb => {
+      cb.addEventListener("change", () => {
+        const id = cb.dataset.id;
+        const textEl = document.getElementById(id);
+        if (cb.checked) {
+          textEl.classList.add("checked");
+          checkedItems[id] = true;
+        } else {
+          textEl.classList.remove("checked");
+          delete checkedItems[id];
+        }
+      });
     });
-    html += "</ul></div>";
+  }
+
+  document.getElementById("generate").addEventListener("click", generateList);
+
+  /* ---------- EXPORT ---------- */
+  document.getElementById("export").addEventListener("click", () => {
+    const items = Array.from(document.querySelectorAll(".item-text"))
+      .filter(i => !i.classList.contains("checked"))
+      .map(i => i.textContent)
+      .join("\n");
+    const blob = new Blob([items], { type: "text/plain" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "boodschappenlijst.txt";
+    a.click();
   });
 
-  document.getElementById("list").innerHTML = html;
-  document.getElementById("export").style.display = "block";
-
-  document.querySelectorAll(".item-checkbox").forEach(cb => {
-    cb.addEventListener("change", () => {
-      const id = cb.dataset.id;
-      const textEl = document.getElementById(id);
-      if (cb.checked) {
-        textEl.classList.add("checked");
-        checkedItems[id] = true;
-      } else {
-        textEl.classList.remove("checked");
-        delete checkedItems[id];
-      }
-    });
-  });
-}
-
-document.getElementById("generate").addEventListener("click", generateList);
-
-/* ---------- EXPORT ---------- */
-document.getElementById("export").addEventListener("click", () => {
-  const items = Array.from(document.querySelectorAll(".item-text"))
-    .filter(i => !i.classList.contains("checked"))
-    .map(i => i.textContent)
-    .join("\n");
-  const blob = new Blob([items], { type: "text/plain" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "boodschappenlijst.txt";
-  a.click();
-});
 
 </script>
 <!-- ➕ Plusknop rechtsonder -->
