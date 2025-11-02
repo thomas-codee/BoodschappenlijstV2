@@ -268,7 +268,7 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
   }
   window.currentUser = session.user;
   console.log("Ingelogd als:", window.currentUser.email);
-  loadRecipes();
+  await loadRecipes();
 })();
 
 /* ---------- LOGOUT ---------- */
@@ -277,178 +277,49 @@ document.getElementById("logout").addEventListener("click", async () => {
   window.location.href = "index.html";
 });
 
-const recipes2 = {
-  "Geen": [],
-  "Tomatenrisotto met spinazie en chorizo": [
-    {name: "Risottorijst", amount: 400, unit: "g", category: "Rijst/Couscous/Pasta"},
-    {name: "Tomatenblokjes", amount: 1, unit: "blikje", category: "Groenten"},
-    {name: "Ui", amount: 2, unit: "stuk", category: "Groenten"},
-    {name: "Spinazie", amount: 400, unit: "g", category: "Groenten"},
-    {name: "Citroen", amount: 1, unit: "stuk", category: "Groenten"},
-    {name: "Chorizo", amount: 200, unit: "g", category: "Vlees/Vis"},
-    {name: "Kippenbouillon", amount: 1, unit: "l", category: "Overig"}
-  ],
-  "Tex-mex eenpanswok met gehakt en aardappel": [
-    {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
-    {name: "Aardappelschijfjes", amount: 600, unit: "g", category: "Groenten"},
-    {name: "Mexicaanse roerbakgroenten", amount: 800, unit: "g", category: "Groenten"},
-    {name: "Cheddar", amount: 150, unit: "g", category: "Zuivel"},
-    {name: "Zure room", amount: 125, unit: "g", category: "Zuivel"},
-    {name: "Guacamole", amount: 150, unit: "g", category: "Groenten"},
-    {name: "Tacokruiden", amount: 1, unit: "zakje", category: "Kruiden"},
-    {name: "Koriander", amount: 15, unit: "g", category: "Groenten"}
-  ],
-  "Vissticks met spinazie à la crème en krieltjes": [
-    {name: "Vissticks", amount: 20, unit: "stuk", category: "Vlees/Vis"},
-    {name: "Spinazie", amount: 750, unit: "g", category: "Groenten"},
-    {name: "Krieltjes", amount: 900, unit: "g", category: "Groenten"},
-    {name: "Appelmoes", amount: 0, unit: "naar smaak", category: "Groenten"}
-  ],
-  "Ovenschotel met gehakt broccoli": [
-    {name: "Broccoli", amount: 1, unit: "stuk", category: "Groenten"},
-    {name: "Aardappelen", amount: 800, unit: "g", category: "Groenten"},
-    {name: "Spek", amount: 150, unit: "g", category: "Vlees/Vis"},
-    {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
-    {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
-    {name: "Knoflook", amount: 2, unit: "teentjes", category: "Groenten"},
-    {name: "Gehaktkruiden", amount: 1, unit: "zakje", category: "Kruiden"},
-    {name: "Roomboter", amount: 25, unit: "g", category: "Zuivel"},
-    {name: "Crème fraîche", amount: 200, unit: "ml", category: "Zuivel"}
-  ],
-  "Kikkererwtencurry met couscous": [
-    {name: "Kikkererwten", amount: 400, unit: "g", category: "Groenten"},
-    {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
-    {name: "Knoflook", amount: 1.5, unit: "teentjes", category: "Groenten"},
-    {name: "Kerriepoeder", amount: 1, unit: "el", category: "Kruiden"},
-    {name: "Kokosmelk", amount: 200, unit: "ml", category: "Zuivel"},
-    {name: "Tomatenblokjes", amount: 1, unit: "blikje", category: "Groenten"},
-    {name: "Couscous", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"}
-  ],
-  "Hutspot met speklapjes": [
-    {name: "Aardappelen", amount: 1000, unit: "g", category: "Groenten"},
-    {name: "Hutspotgroenten", amount: 500, unit: "g", category: "Groenten"},
-    {name: "Ui", amount: 2, unit: "stuk", category: "Groenten"},
-    {name: "Speklapjes", amount: 2, unit: "stuk", category: "Vlees/Vis"}
-  ],
-  "Pasta pesto": [
-    {name: "Pasta", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"},
-    {name: "Kipfilet", amount: 400, unit: "g", category: "Vlees/Vis"},
-    {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
-    {name: "Kookroom", amount: 250, unit: "ml", category: "Zuivel"},
-    {name: "Cherry tomaten", amount: 250, unit: "g", category: "Groenten"},
-    {name: "Peper", amount: 0, unit: "", category: "Kruiden"},
-    {name: "Zout", amount: 0, unit: "", category: "Kruiden"},
-    {name: "Pijnboompitten", amount: 60, unit: "g", category: "Overig"},
-    {name: "Pesto", amount: 4, unit: "el", category: "Overig"}
-  ],
-  "Prei schotel": [
-    {name: "Prei", amount: 500, unit: "g", category: "Groenten"},
-    {name: "Rode paprika", amount: 1, unit: "stuk", category: "Groenten"},
-    {name: "Aardappelschijfjes", amount: 600, unit: "g", category: "Groenten"},
-    {name: "Rundergehakt", amount: 300, unit: "g", category: "Vlees/Vis"},
-    {name: "Ei", amount: 1, unit: "stuk", category: "Overig"},
-    {name: "Kookroom", amount: 125, unit: "ml", category: "Zuivel"},
-    {name: "Maggi Prei-Kerrie mix", amount: 1, unit: "pakje", category: "Overig"}
-  ],
-  "Kip Siam": [
-    {name: "Kipfilet", amount: 250, unit: "g", category: "Vlees/Vis"},
-    {name: "Wokgroenten", amount: 700, unit: "g", category: "Groenten"},
-    {name: "Kip Siam mix", amount: 1, unit: "stuk", category: "Overig"}
-  ],
-  "Stroganov schotel": [
-    {name: "Kipgehakt", amount: 600, unit: "g", category: "Vlees/Vis"},
-    {name: "Rode paprika", amount: 2, unit: "stuk", category: "Groenten"},
-    {name: "Ui", amount: 2, unit: "stuk", category: "Groenten"},
-    {name: "Champignons", amount: 1, unit: "bakje", category: "Groenten"},
-    {name: "Crème fraîche", amount: 500, unit: "ml", category: "Zuivel"},
-    {name: "Kippenbouillonblokjes", amount: 3, unit: "stuk", category: "Kruiden"},
-    {name: "Tomatenpuree", amount: 1, unit: "blikje", category: "Groenten"},
-    {name: "Water", amount: 150, unit: "ml", category: "Overig"}
-  ],
-  "Cottage pie": [
-    {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
-    {name: "Wortels/doperwten", amount: 1, unit: "blik", category: "Groenten"},
-    {name: "Aardappelen", amount: 1000, unit: "g", category: "Groenten"},
-    {name: "Melk", amount: 500, unit: "ml", category: "Zuivel"}
-  ],
-  "Volkoren penne met rode pesto schotel": [
-    {name: "Volkoren penne", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"},
-    {name: "Rode pesto", amount: 6, unit: "el", category: "Kruiden"},
-    {name: "Italiaanse roerbakgroenten", amount: 400, unit: "g", category: "Groenten"},
-    {name: "Tomaten", amount: 400, unit: "g", category: "Groenten"},
-    {name: "Geraspte kaas", amount: 70, unit: "g", category: "Zuivel"},
-    {name: "Kookroom", amount: 200, unit: "ml", category: "Zuivel"},
-    {name: "Kipgehakt", amount: 300, unit: "g", category: "Vlees/Vis"},
-    {name: "Zongedroogde tomaten in olie", amount: 280, unit: "g", category: "Groenten"},
-    {name: "Gedroogde Italiaanse kruiden", amount: 0.5, unit: "el", category: "Kruiden"}
-],
-"Kerrierijst met kip en sperziebonen": [
-    {name: "Langgraanrijst", amount: 300, unit: "g", category: "Koolhydraten"},
-    {name: "Kipfilet", amount: 300, unit: "g", category: "Vlees/Vis"},
-    {name: "Roomboter", amount: 25, unit: "g", category: "Zuivel"},
-    {name: "Kerriepoeder", amount: 1, unit: "el", category: "Kruiden"},
-    {name: "Crème fraîche", amount: 200, unit: "g", category: "Zuivel"},
-    {name: "Sperziebonen", amount: 600, unit: "g", category: "Groenten"}
-],
-"Vissticks Massaman Curry": [
-    {name: "Vissticks", amount: 15, unit: "stuks", category: "Vlees/Vis"},
-    {name: "Massaman-currypasta", amount: 1, unit: "pakje", category: "Kruiden"},
-    {name: "Kokosmelk", amount: 400, unit: "ml", category: "Zuivel"},
-    {name: "Sperziebonen (diepvries)", amount: 450, unit: "g", category: "Groenten"},
-    {name: "Wortel", amount: 200, unit: "g", category: "Groenten"},
-    {name: "Rode ui", amount: 150, unit: "g", category: "Groenten"},
-    {name: "Citroen", amount: 1, unit: "stuk", category: "Groenten"},
-    {name: "Basmatirijst", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"}
-],
-"Spaghetti alla Carbonara": [
-    {name: "Spaghetti", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"},
-    {name: "Spekjes", amount: 200, unit: "g", category: "Vlees/Vis"},
-    {name: "Pecorino Romano", amount: 90, unit: "g", category: "Zuivel"},
-    {name: "Middelgrote scharreleieren", amount: 4, unit: "stuk", category: "Vlees/Vis"}
-],
-"Spaghetti Bolognese": [
-    {name: "Spekjes", amount: 125, unit: "g", category: "Vlees/Vis"},
-    {name: "Ui", amount: 1, unit: "stuk", category: "Groenten"},
-    {name: "Wortel", amount: 150, unit: "g", category: "Groenten"},
-    {name: "Rundergehakt", amount: 500, unit: "g", category: "Vlees/Vis"},
-    {name: "Kippenbouillon", amount: 1, unit: "l", category: "Kruiden"},
-    {name: "Heinz frito", amount: 400, unit: "ml", category: "Groenten"},
-    {name: "Tomatenpuree", amount: 1, unit: "blikje", category: "Groenten"},
-    {name: "Oregano", amount: 1, unit: "tl", category: "Kruiden"},
-    {name: "Spaghetti", amount: 300, unit: "g", category: "Rijst/Couscous/Pasta"}
-],
-};
-
 /* ---------- LOAD RECIPES ---------- */
 let recipes = {};
 async function loadRecipes() {
-  const { data, error } = await supabase.from("recipes").select("*");
+  const { data, error } = await supabase
+    .from("recipes")
+    .select("*")
+    .eq("user_id", window.currentUser.id)
+    .order("created_at", { ascending: true });
+
   if (error) {
     console.error("Fout bij laden recepten:", error);
     alert("Kon recepten niet laden!");
     return;
   }
-  // Zet de recepten in een eenvoudig object
+
+  recipes = {}; // reset
   data.forEach(r => { recipes[r.name] = r.data; });
   console.log("Recepten geladen:", recipes);
   initUI();
 }
+
+// Globaal beschikbaar maken
+window.loadRecipes = loadRecipes;
 
 /* ---------- UI BOUWEN ---------- */
 function initUI() {
   const recipeNames = Object.keys(recipes);
   const recipeInputs = document.getElementById("recipe-inputs");
   recipeInputs.innerHTML = "";
+
   const days = ["Maandag","Dinsdag","Woensdag","Donderdag","Vrijdag","Zaterdag","Zondag"];
   days.forEach((day, idx) => {
     const id = "day" + (idx+1);
+
     const label = document.createElement("label");
     label.setAttribute("for", id);
-    label.textContent = day;
+    label.textContent = day + ": ";
+
     const input = document.createElement("input");
     input.type = "text";
     input.setAttribute("list", id + "List");
     input.id = id;
+
     const datalist = document.createElement("datalist");
     datalist.id = id + "List";
     recipeNames.forEach(name => {
@@ -456,9 +327,11 @@ function initUI() {
       opt.value = name;
       datalist.appendChild(opt);
     });
+
     recipeInputs.appendChild(label);
     recipeInputs.appendChild(input);
     recipeInputs.appendChild(datalist);
+    recipeInputs.appendChild(document.createElement("br"));
   });
 }
 
@@ -528,6 +401,7 @@ document.getElementById("export").addEventListener("click", () => {
   a.download = "boodschappenlijst.txt";
   a.click();
 });
+
 </script>
 <!-- ➕ Plusknop rechtsonder -->
 <button id="addRecipeBtn" title="Nieuw recept toevoegen">＋</button>
