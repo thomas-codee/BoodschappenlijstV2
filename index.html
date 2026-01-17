@@ -107,7 +107,7 @@ button:hover {
 <script>
 const supabaseUrl = "https://rtqfjlbgnftlznonecwj.supabase.co";
 const supabaseKey = "sb_publishable_iY6IM8QSq9P1ZienOcFKdw_ExM4rG_w";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = window.supabaseClient.createClient(supabaseClientUrl, supabaseClientKey);
 
 // Default recipes
 const recipes2 = {
@@ -254,7 +254,7 @@ const recipes2 = {
 
 // 🔄 Check of iemand al ingelogd is
 (async () => {
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if (session) window.location.href = "app.html";
 })();
 
@@ -266,7 +266,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const msg = document.getElementById("msg");
 
   msg.textContent = "Bezig met inloggen...";
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   if (error) {
     msg.textContent = "Fout: " + error.message;
@@ -287,7 +287,7 @@ return;
 }
 
 msg.textContent = "Account aanmaken...";
-const { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({ email, password });
 
 if (signUpError) {
 msg.textContent = "Fout: " + signUpError.message;
@@ -295,13 +295,13 @@ msg.textContent = "Fout: " + signUpError.message;
 msg.textContent = "Account aangemaakt! Check je mail om te bevestigen.";
 
 // Automatically log in to get user_id
-const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+const { data: loginData, error: loginError } = await supabaseClient.auth.signInWithPassword({ email, password });
 if (!loginError) {
   const userId = loginData.user.id;
 
   // Insert all recipes for the new user
   for (const [name, ingredients] of Object.entries(recipes2)) {
-    await supabase.from("recipes").insert({
+    await supabaseClient.from("recipes").insert({
       user_id: userId,
       name: name,
       data: JSON.stringify(ingredients)
