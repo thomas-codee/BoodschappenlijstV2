@@ -218,7 +218,7 @@ recipeForm.addEventListener("submit", async (e) => {
     return;
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from("recipes")
     .insert({
       user_id: user.id,
