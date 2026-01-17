@@ -199,7 +199,7 @@ recipeForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   msg.textContent = "Recept opslaan...";
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabaseClient.auth.getUser();
   if (!user) {
     msg.textContent = "Je bent niet ingelogd!";
     return;
