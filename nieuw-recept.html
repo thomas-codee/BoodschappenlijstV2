@@ -142,7 +142,7 @@ button:hover {
 <script>
 const supabaseUrl = "https://rtqfjlbgnftlznonecwj.supabase.co";
 const supabaseKey = "sb_publishable_iY6IM8QSq9P1ZienOcFKdw_ExM4rG_w";
-const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 const ingredientList = document.getElementById("ingredientList");
 const addIngredientBtn = document.getElementById("addIngredientBtn");
